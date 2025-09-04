@@ -1,54 +1,113 @@
+from django.core.exceptions import ValidationError
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone as datezone
+
+from .constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
 
 
-class Review(models.Model):
-    """Модель для хранения отзывов на произведения."""
-    text = models.TextField(verbose_name='Текст отзыва')
-    author = models.IntegerField(verbose_name='ID автора')
-    # Заглушка для User.id
-    score = models.IntegerField(
-        verbose_name='Оценка',
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+def validate_year(value):
+    current_year = datezone.now().year
+    if value > current_year:
+        raise ValidationError('Год не может быть больше текущего.')
+
+
+class Category(models.Model):
+    name = models.CharField(
+        max_length=MAX_LENGTH_NAME,
+        verbose_name='Категория'
     )
-    pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True
+    slug = models.SlugField(
+        max_length=MAX_LENGTH_SLUG,
+        unique=True,
+        verbose_name='Слаг'
     )
-    title_id = models.IntegerField(verbose_name='ID произведения')
-    # Заглушка для Title.id
 
     class Meta:
-        verbose_name = 'Отзыв'
-        verbose_name_plural = 'Отзывы'
-        ordering = ['-pub_date']
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Genre(models.Model):
+    name = models.CharField(
+        max_length=MAX_LENGTH_NAME,
+        verbose_name='Жанр'
+    )
+    slug = models.SlugField(
+        max_length=MAX_LENGTH_SLUG,
+        unique=True,
+        verbose_name='Слаг'
+    )
+
+    class Meta:
+        verbose_name = 'Жанр'
+        verbose_name_plural = 'Жанры'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Title(models.Model):
+    name = models.CharField(
+        max_length=MAX_LENGTH_NAME,
+        verbose_name='Название'
+    )
+    year = models.PositiveSmallIntegerField(
+        'Год',
+        validators=[validate_year],
+    )
+    description = models.TextField(
+        'Описание',
+        blank=True
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='titles',
+        verbose_name='Категория'
+    )
+    genre = models.ManyToManyField(
+        Genre,
+        through='GenreTitle',
+        related_name='titles',
+        verbose_name='Жанры'
+    )
+
+    class Meta:
+        verbose_name = 'Произведение'
+        verbose_name_plural = 'Произведения'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class GenreTitle(models.Model):
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='Произведение'
+    )
+    genre = models.ForeignKey(
+        Genre,
+        on_delete=models.CASCADE,
+        verbose_name='Жанр'
+    )
+
+    class Meta:
+        verbose_name = 'Жанр произведения'
+        verbose_name_plural = 'Жанры произведений'
         constraints = [
             models.UniqueConstraint(
-                fields=['author', 'title_id'],
-                name='unique_review'
+                fields=['title', 'genre'],
+                name='unique_title_genre'
             )
         ]
 
     def __str__(self):
-        return f'Отзыв {self.author} на произведение {self.title_id}'
-
-
-class Comment(models.Model):
-    """Модель для хранения комментариев к отзывам."""
-    text = models.TextField(verbose_name='Текст комментария')
-    author = models.IntegerField(verbose_name='ID автора')
-    # Заглушка для User.id
-    pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True
-    )
-    review_id = models.IntegerField(verbose_name='ID отзыва')
-    # Заглушка для Review.id
-
-    class Meta:
-        verbose_name = 'Комментарий'
-        verbose_name_plural = 'Комментарии'
-        ordering = ['-pub_date']
-
-    def __str__(self):
-        return f'Комментарий {self.author} к отзыву {self.review_id}'
+        return f'{self.title} → {self.genre}'
