@@ -1,9 +1,10 @@
 from django.db.models import Avg
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets, mixins
 from rest_framework.pagination import PageNumberPagination
 
-from reviews.models import Category, Genre, Title
+from api.models import Category, Genre, Title
 from .filters import TitleFilter
 from .permissions import IsAdminOrReadOnly
 from .serializers import (
@@ -20,6 +21,8 @@ class CategoryViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
+    """ViewSet для категорий с возможностью создания, просмотра и удаления."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     lookup_field = 'slug'
@@ -35,6 +38,8 @@ class GenreViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet
 ):
+    """ViewSet для жанров с возможностью создания, просмотра и удаления."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     lookup_field = 'slug'
@@ -45,6 +50,8 @@ class GenreViewSet(
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """ViewSet для произведений с поддержкой фильтров, поиска и вычисляемого рейтинга."""
+
     http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')
@@ -54,6 +61,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     filterset_class = TitleFilter
 
     def get_serializer_class(self):
+        """Возвращает сериализатор для чтения или записи в зависимости от действия."""
         if self.action in ['list', 'retrieve']:
             return TitleReadSerializer
         return TitleWriteSerializer

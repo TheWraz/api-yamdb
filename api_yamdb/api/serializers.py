@@ -1,20 +1,27 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title
+
+from api.models import Category, Genre, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериализатор для категорий произведений."""
+
     class Meta:
         model = Category
         fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериализатор для жанров произведений."""
+
     class Meta:
         model = Genre
         fields = ('name', 'slug')
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
+    """Сериализатор для чтения произведений с вложенными жанрами и категорией."""
+
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
     rating = serializers.IntegerField(read_only=True)
@@ -33,6 +40,8 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
 
 class TitleWriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для записи произведений через slug жанра и категории."""
+
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',

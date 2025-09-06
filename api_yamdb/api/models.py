@@ -1,17 +1,20 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils import timezone as datezone
+from django.utils import timezone
 
-from .constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
+from reviews.constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
 
 
 def validate_year(value):
-    current_year = datezone.now().year
+    """Валидатор: проверяет, что год не больше текущего."""
+    current_year = timezone.now().year
     if value > current_year:
         raise ValidationError('Год не может быть больше текущего.')
 
 
 class Category(models.Model):
+    """Модель категории произведений."""
+
     name = models.CharField(
         max_length=MAX_LENGTH_NAME,
         verbose_name='Категория'
@@ -32,6 +35,8 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель жанра произведений."""
+
     name = models.CharField(
         max_length=MAX_LENGTH_NAME,
         verbose_name='Жанр'
@@ -52,6 +57,8 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель произведения (книга, фильм, музыка и т.п.)."""
+
     name = models.CharField(
         max_length=MAX_LENGTH_NAME,
         verbose_name='Название'
@@ -88,6 +95,8 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Связующая модель жанров и произведений."""
+
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
