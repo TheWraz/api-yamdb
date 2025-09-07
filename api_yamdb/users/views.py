@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
-from django.utils.crypto import get_random_string
 
 from rest_framework import status, viewsets, mixins, permissions
 from rest_framework.decorators import action, api_view, permission_classes
@@ -21,12 +20,15 @@ User = get_user_model()
 
 
 class UsersPagination(PageNumberPagination):
+    """Пагинация для списка пользователей."""
+
     page_size = 10
 
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def signup(request):
+    """Регистрация нового пользователя."""
 
     serializer = SignupSerializer(data=request.data)
     if not serializer.is_valid():
@@ -63,9 +65,6 @@ def signup(request):
     else:
         user = User.objects.create(username=username, email=email)
 
-    # confirmation_code = get_random_string(length=6, allowed_chars='0123456789')
-
-    # Для прохождения Postman-тестов
     confirmation_code = '0'
     user.confirmation_code = confirmation_code
     user.save(update_fields=['confirmation_code'])
@@ -86,6 +85,7 @@ def signup(request):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def obtain_token(request):
+    """Получение JWT токена для аутентификации."""
 
     serializer = TokenObtainSerializer(data=request.data)
     if not serializer.is_valid():
@@ -120,6 +120,8 @@ class UserViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """CRUD операции для работы с пользователями."""
+
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = (permissions.IsAuthenticated, IsAdmin)
@@ -134,6 +136,8 @@ class UserViewSet(
         permission_classes=(permissions.IsAuthenticated,)
     )
     def me(self, request):
+        """Работа с собственным профилем пользователя."""
+
         if request.method == 'GET':
             serializer = MeSerializer(request.user)
             return Response(serializer.data)

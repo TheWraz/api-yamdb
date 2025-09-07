@@ -3,6 +3,7 @@ from django.db import models
 
 
 class CustomUser(AbstractUser):
+    """Кастомная модель пользователя."""
 
     USER = 'user'
     MODERATOR = 'moderator'
@@ -34,4 +35,6 @@ class CustomUser(AbstractUser):
 
     @property
     def is_admin(self):
+        """Проверяет, является ли пользователь администратором."""
+
         return self.is_superuser or self.role == self.ADMIN or self.is_staff

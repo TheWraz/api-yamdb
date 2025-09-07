@@ -29,16 +29,22 @@ class UsernameValidationMixin:
 
 
 class SignupSerializer(UsernameValidationMixin, serializers.Serializer):
+    """Сериализатор для регистрации пользователей."""
+
     email = serializers.EmailField(max_length=254, required=True)
     username = serializers.CharField(max_length=150, required=True)
 
 
 class TokenObtainSerializer(serializers.Serializer):
+    """Сериализатор для получения JWT токена."""
+
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
 
 class UserSerializer(UsernameValidationMixin, serializers.ModelSerializer):
+    """Сериализатор для CRUD операций с пользователями."""
+
     first_name = serializers.CharField(
         max_length=150, allow_blank=True, default='', required=False
     )
@@ -61,5 +67,7 @@ class UserSerializer(UsernameValidationMixin, serializers.ModelSerializer):
 
 
 class MeSerializer(UserSerializer):
+    """Сериализатор для работы с собственным профилем пользователя."""
+
     class Meta(UserSerializer.Meta):
         read_only_fields = ('role',)
