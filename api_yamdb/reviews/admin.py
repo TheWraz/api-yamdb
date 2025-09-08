@@ -9,6 +9,7 @@ class ReviewAdmin(admin.ModelAdmin):
     list_filter = ('pub_date', 'score')
     search_fields = ('text',)
 
+
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
     list_display = ('id', 'author', 'review_id', 'pub_date')

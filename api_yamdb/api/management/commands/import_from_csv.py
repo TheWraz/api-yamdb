@@ -12,7 +12,7 @@ from api_yamdb.titles.models import Category, Genre, Title, GenreTitle
 class Command(BaseCommand):
     """Импортирует данные из static/data/*.csv в соответствующие модели."""
 
-    help = 'Импорт категорий, жанров, произведений и связей title↔genre из CSV.'
+    help = 'Импорт категорий, жанров, произведений и связей title↔genre из CSV'
 
     def handle(self, *args, **kwargs):
         data_dir = Path(settings.BASE_DIR) / 'static' / 'data'
@@ -28,30 +28,41 @@ class Command(BaseCommand):
         """Импорт категорий из category.csv (id,name,slug)."""
 
         if not path.exists():
-            self.stdout.write(self.style.WARNING(f'Файл не найден: {path.name}'))
+            self.stdout.write(
+                self.style.WARNING(f'Файл не найден: {path.name}')
+            )
             return
         created = 0
         with path.open(encoding='utf-8') as f:
             for row in DictReader(f):
                 _, was_created = Category.objects.get_or_create(
                     id=int(row['id']),
-                    defaults={'name': row['name'].strip(), 'slug': row['slug'].strip()},
+                    defaults={
+                        'name': row['name'].strip(),
+                        'slug': row['slug'].strip()
+                    },
                 )
                 created += int(was_created)
-        self.stdout.write(self.style.SUCCESS(f'Категории: добавлено {created}.'))
+        self.stdout.write(self.style.SUCCESS(
+            f'Категории: добавлено {created}.'))
 
     def _load_genres(self, path):
         """Импорт жанров из genre.csv (id,name,slug)."""
 
         if not path.exists():
-            self.stdout.write(self.style.WARNING(f'Файл не найден: {path.name}'))
+            self.stdout.write(
+                self.style.WARNING(f'Файл не найден: {path.name}')
+            )
             return
         created = 0
         with path.open(encoding='utf-8') as f:
             for row in DictReader(f):
                 _, was_created = Genre.objects.get_or_create(
                     id=int(row['id']),
-                    defaults={'name': row['name'].strip(), 'slug': row['slug'].strip()},
+                    defaults={
+                        'name': row['name'].strip(),
+                        'slug': row['slug'].strip()
+                    },
                 )
                 created += int(was_created)
         self.stdout.write(self.style.SUCCESS(f'Жанры: добавлено {created}.'))
@@ -60,12 +71,16 @@ class Command(BaseCommand):
         """Импорт произведений из titles.csv (id,name,year,category)."""
 
         if not path.exists():
-            self.stdout.write(self.style.WARNING(f'Файл не найден: {path.name}'))
+            self.stdout.write(
+                self.style.WARNING(f'Файл не найден: {path.name}')
+            )
             return
         created = 0
         with path.open(encoding='utf-8') as f:
             for row in DictReader(f):
-                category = Category.objects.get(id=int(row['category'])) if row['category'] else None
+                category = Category.objects.get(
+                    id=int(row['category'])
+                ) if row['category'] else None
                 _, was_created = Title.objects.get_or_create(
                     id=int(row['id']),
                     defaults={
@@ -75,19 +90,26 @@ class Command(BaseCommand):
                     },
                 )
                 created += int(was_created)
-        self.stdout.write(self.style.SUCCESS(f'Произведения: добавлено {created}.'))
+        self.stdout.write(
+            self.style.SUCCESS(f'Произведения: добавлено {created}.')
+        )
 
     def _load_genre_title(self, path):
         """Импорт связей из genre_title.csv (id, title_id, genre_id)."""
 
         if not path.exists():
-            self.stdout.write(self.style.WARNING(f'Файл не найден: {path.name}'))
+            self.stdout.write(
+                self.style.WARNING(f'Файл не найден: {path.name}')
+            )
             return
         created = 0
         with path.open(encoding='utf-8') as f:
             for row in DictReader(f):
                 title = Title.objects.get(id=int(row['title_id']))
                 genre = Genre.objects.get(id=int(row['genre_id']))
-                _, was_created = GenreTitle.objects.get_or_create(title=title, genre=genre)
+                _, was_created = GenreTitle.objects.get_or_create(
+                    title=title, genre=genre
+                )
                 created += int(was_created)
-        self.stdout.write(self.style.SUCCESS(f'Связи жанров/произведений: добавлено {created}.'))
+        self.stdout.write(self.style.SUCCESS(
+            f'Связи жанров/произведений: добавлено {created}.'))
