@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from api.models import Category, Genre, Title
+from titles.models import Category, Genre, Title
+from reviews.models import Review, Comment
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -20,7 +21,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
-    """Сериализатор для чтения произведений с вложенными жанрами и категорией."""
+    """Сериализатор для чтения произведений с жанрами и категорией."""
 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
@@ -62,3 +63,22 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'genre',
             'category',
         )
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Comment."""
+    author = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = Comment
+        fields = ('id', 'text', 'author', 'pub_date')
+
+
+class ReviewSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели Review."""
+    author = serializers.ReadOnlyField(source='author.username')
+    comments = CommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Review
+        fields = ('id', 'text', 'author', 'score', 'pub_date', 'comments')

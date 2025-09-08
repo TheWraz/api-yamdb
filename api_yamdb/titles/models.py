@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from reviews.constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
+from .constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
 
 
 def validate_year(value):

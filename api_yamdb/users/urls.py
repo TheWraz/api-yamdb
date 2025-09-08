@@ -12,4 +12,3 @@ urlpatterns = [
     path('v1/auth/token/', obtain_token, name='auth-token'),
     path('v1/', include(router.urls)),
 ]
-
