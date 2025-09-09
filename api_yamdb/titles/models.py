@@ -21,6 +21,7 @@ class Category(models.Model):
     )
     slug = models.SlugField(
         max_length=MAX_LENGTH_SLUG,
+# Это значение (50) в SlugField уже установлено нужной нам длины.
         unique=True,
         verbose_name='Слаг'
     )
@@ -29,6 +30,10 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         ordering = ['name']
+# Когда объявляется коллекция, нужно верно выбрать между списком и кортежем(тут список). 
+# Выбор нужно делать осознанно, потому что список изменяемый, а кортеж нет. 
+# Если предполагается, что сюда будет вноситься изменения где то в коде, то нужен список, а если изменений никаких не будет то лучше кортеж.
+# Тут и далее.
 
     def __str__(self):
         return self.name
@@ -43,6 +48,7 @@ class Genre(models.Model):
     )
     slug = models.SlugField(
         max_length=MAX_LENGTH_SLUG,
+# Это значение (50) в SlugField уже установлено нужной нам длины.
         unique=True,
         verbose_name='Слаг'
     )

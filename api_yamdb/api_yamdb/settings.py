@@ -128,3 +128,5 @@ REST_FRAMEWORK = {
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Письма локально не сохраняются. Нужно добавить в settings.py - EMAIL_BACKEND и EMAIL_FILE_PATH.

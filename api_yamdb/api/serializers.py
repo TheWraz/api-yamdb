@@ -52,6 +52,7 @@ class TitleWriteSerializer(serializers.ModelSerializer):
         slug_field='slug',
         queryset=Category.objects.all()
     )
+# Для рейтинга нужен IntegerField, в котором надо будет указать параметр default (дефолтом будет None).
 
     class Meta:
         model = Title
@@ -76,9 +77,15 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
+# Некорректный формат ответа.
+# Внимание на жанры, категорию и рейтинг.
+# АПИ пишут в строгом соответствии с документацией, в противном случае твои коллеги на фронте могут не досчитаться данных. 
+# Именно это сейчас происходит с полями категорий и жанров. Фронт ждет в поле категорий словарь, а мы отдаем ему строку, и т.д.
+# Посмотри в сторону to_representation.
     author = serializers.ReadOnlyField(source='author.username')
     comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'comments')
+# Не все поля нужны согласно ТЗ. Сверяемся со спецификацией.

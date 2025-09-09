@@ -5,6 +5,7 @@ from . import views
 
 v1_router = DefaultRouter()
 v1_router.register(r'categories', views.CategoryViewSet, basename='categories')
+# Там где регулярные выражения не используются, символ r убираем.
 v1_router.register(r'genres', views.GenreViewSet, basename='genres')
 v1_router.register(r'titles', views.TitleViewSet, basename='titles')
 v1_router.register(

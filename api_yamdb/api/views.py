@@ -82,8 +82,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """Возвращает queryset отзывов для конкретного произведения."""
         title_id = self.kwargs.get('title_id')
         return Review.objects.filter(title_id=title_id)
+# 1 Рано. Сперва нужно проверить что произведение вообще существует.
+# Используем get_object_or_404.
+# 2 Мы уже умеем пользоваться related_name. Используй его вместо filter чтобы получить все отзывы по производению.
 
     def create(self, request, *args, **kwargs):
+# Лишний метод. Вся валидация происходит в сериализаторе. Вынеси проверку в validate.
         """Проверяем уникальность перед созданием."""
         title_id = self.kwargs.get('title_id')
         title = get_object_or_404(Title, id=title_id)
@@ -99,6 +103,9 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """Устанавливает автора и произведение при создании отзыва."""
         title_id = self.kwargs.get('title_id')
         title = Title.objects.get(id=title_id)
+# 1 Рано. Сперва нужно проверить что произведение вообще существует.
+# Используем get_object_or_404.
+# Давай получение произведения вынесем в отдельный метод чтобы не повторяться.
         serializer.save(author=self.request.user, title=title)
 
 
@@ -113,9 +120,13 @@ class CommentViewSet(viewsets.ModelViewSet):
         """Возвращает queryset комментариев для конкретного отзыва."""
         review_id = self.kwargs.get('review_id')
         return Comment.objects.filter(review_id=review_id)
+# 1 Рано. Сперва нужно проверить что произведение вообще существует.
+# Используем get_object_or_404.
+# 2 Мы уже умеем пользоваться related_name. Используй его вместо filter чтобы получить все отзывы по производению.
 
     def perform_create(self, serializer):
         """Устанавливает автора и отзыв при создании комментария."""
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
+# Давай получение отзыва вынесем в отдельный метод чтобы не повторяться.
         serializer.save(author=self.request.user, review=review)

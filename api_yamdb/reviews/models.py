@@ -13,6 +13,8 @@ class Review(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='reviews',
+# Если related_name одинаковый для всех полей, то можно указать default_related_name.
+# Тут и ниже.
         verbose_name='Автор'
     )
     title = models.ForeignKey(
@@ -24,6 +26,9 @@ class Review(models.Model):
     score = models.IntegerField(
         verbose_name='Оценка',
         validators=[MinValueValidator(1), MaxValueValidator(10)]
+# Величины ограничений берем из констант.
+# Тут и далее.
+# Параметром message, в каждом классе валидации, можно указать сообщение с причиной данной ошибки.
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -34,6 +39,10 @@ class Review(models.Model):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         ordering = ['-pub_date']
+# огда объявляется коллекция, нужно верно выбрать между списком и кортежем(тут список). 
+# Выбор нужно делать осознанно, потому что список изменяемый, а кортеж нет. 
+# Если предполагается, что сюда будет вноситься изменения где то в коде, то нужен список, а если изменений никаких не будет то лучше кортеж.
+# Тут и далее.
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'title'],
