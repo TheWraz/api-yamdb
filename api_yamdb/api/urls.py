@@ -17,7 +17,10 @@ v1_router.register(
     views.CommentViewSet,
     basename='comments'
 )
+v1_router.register('users', views.UserViewSet, basename='users')
 
 urlpatterns = [
     path('v1/', include(v1_router.urls)),
+    path('v1/auth/signup/', views.signup, name='auth-signup'),
+    path('v1/auth/token/', views.obtain_token, name='auth-token'),
 ]

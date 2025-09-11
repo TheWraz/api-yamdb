@@ -1,14 +1,21 @@
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets, mixins, status
+from rest_framework import filters, viewsets, mixins, status, permissions
+from rest_framework.decorators import api_view, permission_classes, action
+from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
 from titles.models import Category, Genre, Title
 from reviews.models import Review, Comment
 from .filters import TitleFilter
-from .permissions import IsAdminOrReadOnly, IsModeratorOrAuthorOrReadOnly
+from .permissions import IsAdminOrReadOnly, IsModeratorOrAuthorOrReadOnly, IsAdmin
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
@@ -16,7 +23,14 @@ from .serializers import (
     TitleWriteSerializer,
     ReviewSerializer,
     CommentSerializer,
+    SignupSerializer,
+    TokenObtainSerializer,
+    UserSerializer,
+    MeSerializer,
 )
+from .paginator import UsersPagination
+
+User = get_user_model()
 
 
 class CategoryViewSet(
@@ -119,3 +133,87 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id)
         serializer.save(author=self.request.user, review=review)
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def signup(request):
+    """Регистрация нового пользователя."""
+
+    serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    email = serializer.validated_data['email']
+    username = serializer.validated_data['username']
+
+    user, created = User.objects.get_or_create(
+        username=username,
+        defaults={'email': email}
+    )
+
+    confirmation_code = default_token_generator.make_token(user)
+
+    send_mail(
+        subject='YaMDb confirmation code',
+        message=f'Ваш код подтверждения: {confirmation_code}',
+        from_email=settings.FROM_EMAIL,
+        recipient_list=[email],
+        fail_silently=True,
+    )
+    return Response(
+        {'email': email, 'username': username},
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def obtain_token(request):
+    """Получение JWT токена для аутентификации."""
+
+    serializer = TokenObtainSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+
+    username = serializer.validated_data.get('username')
+    confirmation_code = serializer.validated_data.get('confirmation_code')
+
+    user = get_object_or_404(User, username=username)
+
+    if not default_token_generator.check_token(user, confirmation_code):
+        return Response(
+            {'confirmation_code': ['Неверный код подтверждения.']},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    token = AccessToken.for_user(user)
+    return Response({'token': str(token)}, status=status.HTTP_200_OK)
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """CRUD операции для работы с пользователями."""
+
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = (permissions.IsAuthenticated, IsAdmin)
+    lookup_field = 'username'
+    pagination_class = UsersPagination
+    filter_backends = (SearchFilter,)
+    search_fields = ('username',)
+    http_method_names = ('get', 'post', 'patch', 'delete')
+
+    @action(
+        detail=False, methods=('get', 'patch'),
+        permission_classes=(permissions.IsAuthenticated,)
+    )
+    def me(self, request):
+        """Работа с собственным профилем пользователя."""
+
+        if request.method == 'GET':
+            serializer = MeSerializer(request.user)
+            return Response(serializer.data)
+        serializer = MeSerializer(
+            request.user, data=request.data, partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)

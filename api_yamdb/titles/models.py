@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from .constants import MAX_LENGTH_NAME
+from api_yamdb.constants import MAX_LENGTH_NAME
 
 
 def validate_year(value):

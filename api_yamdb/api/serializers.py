@@ -3,6 +3,13 @@ from rest_framework import serializers
 from titles.models import Category, Genre, Title
 from reviews.models import Review, Comment
 
+from django.contrib.auth import get_user_model
+from django.contrib.auth.validators import UnicodeUsernameValidator
+
+from api_yamdb.constants import MAX_LENGTH_USERNAME
+
+from .validators import me_forbidden_validator
+
 
 class CategorySerializer(serializers.ModelSerializer):
     """Сериализатор для категорий произведений."""
@@ -82,3 +89,72 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = ('id', 'text', 'author', 'score', 'pub_date', 'comments')
+
+
+User = get_user_model()
+
+
+class SignupSerializer(serializers.Serializer):
+    """Сериализатор для регистрации пользователей."""
+
+    email = serializers.EmailField(required=True)
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        required=True,
+        validators=[UnicodeUsernameValidator(), me_forbidden_validator]
+    )
+
+    def validate(self, data):
+        """Валидация комбинации username и email."""
+
+        email = data.get('email')
+        username = data.get('username')
+
+        user_by_email = User.objects.filter(email=email).first()
+        user_by_username = User.objects.filter(username=username).first()
+
+        if user_by_email != user_by_username:
+            error_message = {}
+
+            if user_by_email is not None:
+                error_message['email'] = (
+                    ['Пользователь с таким email уже существует.']
+                )
+
+            if user_by_username is not None:
+                error_message['username'] = (
+                    ['Пользователь с таким username уже существует.']
+                )
+
+            raise serializers.ValidationError(error_message)
+
+        return data
+
+
+class TokenObtainSerializer(serializers.Serializer):
+    """Сериализатор для получения JWT токена."""
+
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        required=True
+    )
+    confirmation_code = serializers.CharField(
+        required=True
+    )
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для CRUD операций с пользователями."""
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name', 'last_name', 'username', 'bio', 'role', 'email'
+        )
+
+
+class MeSerializer(UserSerializer):
+    """Сериализатор для работы с собственным профилем пользователя."""
+
+    class Meta(UserSerializer.Meta):
+        read_only_fields = ('role',)

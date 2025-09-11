@@ -15,7 +15,7 @@ class IsModeratorOrAuthorOrReadOnly(permissions.BasePermission):
             return True
         return (
             obj.author == request.user
-            or request.user.role == request.user.MODERATOR
+            or request.user.role == 'moderator'
             or request.user.is_admin
         )
 
@@ -27,5 +27,18 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return (
             request.method in permissions.SAFE_METHODS
             or request.user and request.user.is_authenticated
+            and request.user.is_admin
+        )
+
+
+class IsAdmin(permissions.BasePermission):
+    """Разрешение для доступа только администраторам."""
+
+    def has_permission(self, request, view):
+        """Проверяет права доступа для запроса."""
+
+        return (
+            request.user
+            and request.user.is_authenticated
             and request.user.is_admin
         )
