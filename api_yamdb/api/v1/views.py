@@ -13,9 +13,13 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from titles.models import Category, Genre, Title
-from reviews.models import Review, Comment
+from reviews.models import Review
 from .filters import TitleFilter
-from .permissions import IsAdminOrReadOnly, IsModeratorOrAuthorOrReadOnly, IsAdmin
+from .permissions import (
+    IsAdminOrReadOnly,
+    IsModeratorOrAuthorOrReadOnly,
+    IsAdmin,
+)
 from .serializers import (
     CategorySerializer,
     GenreSerializer,
@@ -28,7 +32,7 @@ from .serializers import (
     UserSerializer,
     MeSerializer,
 )
-from .paginator import UsersPagination
+from api.paginator import UsersPagination
 
 User = get_user_model()
 

@@ -4,7 +4,7 @@ from django.db import models
 
 from api_yamdb.constants import (
     MAX_LENGTH_USERNAME,
-    MAX_LENGTH_ROLE
+    MAX_LENGTH_ROLE,
 )
 
 from api.validators import me_forbidden_validator
@@ -26,7 +26,7 @@ class User(AbstractUser):
     )
     email = models.EmailField('Email', unique=True)
     first_name = models.CharField(
-        'Имя', max_length=150, blank=True
+        'Имя', max_length=150, blank=True,
     )
     last_name = models.CharField(
         'Фамилия', max_length=150, blank=True
@@ -45,6 +45,12 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.username} ({self.email})'
+
+    @property
+    def is_moderator(self):
+        """Проверяет, является ли пользователь модератором."""
+
+        return self.role == self.Role.MODERATOR or self.is_staff
 
     @property
     def is_admin(self):

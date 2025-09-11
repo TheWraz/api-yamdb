@@ -2,11 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from api_yamdb.constants import MIN_SCORE, MAX_SCORE
 from titles.models import Title
-
-
-MIN_SCORE = 1
-MAX_SCORE = 10
 
 
 class Review(models.Model):
