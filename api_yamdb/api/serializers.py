@@ -71,6 +71,9 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'category',
         )
 
+    def to_representation(self, instance):
+        return TitleReadSerializer(instance, context=self.context).data
+
 
 class CommentSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Comment."""
@@ -84,11 +87,21 @@ class CommentSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
     author = serializers.ReadOnlyField(source='author.username')
-    comments = CommentSerializer(many=True, read_only=True)
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date', 'comments')
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+
+    def validate(self, data):
+        """Проверяет, что пользователь не оставлял отзыв на произведение."""
+        if self.context['request'].method == 'POST':
+            title = self.context['view'].get_title()
+            user = self.context['request'].user
+            if Review.objects.filter(author=user, title=title).exists():
+                raise serializers.ValidationError(
+                    'Вы уже оставляли отзыв на это произведение'
+                )
+        return data
 
 
 User = get_user_model()
