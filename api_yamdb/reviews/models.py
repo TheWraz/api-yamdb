@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
 
+from api_yamdb.constants import MIN_SCORE, MAX_SCORE
 from titles.models import Title
 
 
@@ -12,18 +13,25 @@ class Review(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='reviews',
         verbose_name='Автор'
     )
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
         verbose_name='Произведение'
     )
     score = models.IntegerField(
         verbose_name='Оценка',
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=[
+            MinValueValidator(
+                MIN_SCORE,
+                message=f'Оценка не может быть меньше {MIN_SCORE}'
+            ),
+            MaxValueValidator(
+                MAX_SCORE,
+                message=f'Оценка не может быть больше {MAX_SCORE}'
+            )
+        ]
     )
     pub_date = models.DateTimeField(
         verbose_name='Дата публикации',
@@ -33,7 +41,8 @@ class Review(models.Model):
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
+        default_related_name = 'reviews'
         constraints = [
             models.UniqueConstraint(
                 fields=['author', 'title'],
@@ -52,13 +61,11 @@ class Comment(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Автор'
     )
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Отзыв'
     )
     pub_date = models.DateTimeField(
@@ -69,7 +76,8 @@ class Comment(models.Model):
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-        ordering = ['-pub_date']
+        ordering = ('-pub_date',)
+        default_related_name = 'comments'
 
     def __str__(self):
         return f'Комментарий {self.author.username} к отзыву {self.review.id}'

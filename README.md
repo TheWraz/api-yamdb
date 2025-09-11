@@ -44,6 +44,12 @@ cd api_yamdb
 python manage.py migrate
 ```
 
+Импорт данных из csv файлов:
+
+```
+python manage.py import_from_csv
+```
+
 Запустить проект:
 
 ```

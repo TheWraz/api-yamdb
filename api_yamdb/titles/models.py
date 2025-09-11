@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from .constants import MAX_LENGTH_NAME, MAX_LENGTH_SLUG
+from api_yamdb.constants import MAX_LENGTH_NAME
 
 
 def validate_year(value):
@@ -20,7 +20,6 @@ class Category(models.Model):
         verbose_name='Категория'
     )
     slug = models.SlugField(
-        max_length=MAX_LENGTH_SLUG,
         unique=True,
         verbose_name='Слаг'
     )
@@ -28,7 +27,7 @@ class Category(models.Model):
     class Meta:
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
-        ordering = ['name']
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -42,7 +41,6 @@ class Genre(models.Model):
         verbose_name='Жанр'
     )
     slug = models.SlugField(
-        max_length=MAX_LENGTH_SLUG,
         unique=True,
         verbose_name='Слаг'
     )
@@ -50,7 +48,7 @@ class Genre(models.Model):
     class Meta:
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
-        ordering = ['name']
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -79,7 +77,7 @@ class Title(models.Model):
         verbose_name='Категория'
     )
     genre = models.ManyToManyField(
-        Genre,
+        'Genre',
         through='GenreTitle',
         related_name='titles',
         verbose_name='Жанры'
@@ -88,7 +86,7 @@ class Title(models.Model):
     class Meta:
         verbose_name = 'Произведение'
         verbose_name_plural = 'Произведения'
-        ordering = ['name']
+        ordering = ('name',)
 
     def __str__(self):
         return self.name
@@ -111,12 +109,12 @@ class GenreTitle(models.Model):
     class Meta:
         verbose_name = 'Жанр произведения'
         verbose_name_plural = 'Жанры произведений'
-        constraints = [
+        constraints = (
             models.UniqueConstraint(
                 fields=['title', 'genre'],
                 name='unique_title_genre'
-            )
-        ]
+            ),
+        )
 
     def __str__(self):
         return f'{self.title} → {self.genre}'

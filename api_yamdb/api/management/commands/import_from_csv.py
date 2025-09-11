@@ -6,7 +6,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.management import BaseCommand
 
-from api_yamdb.titles.models import Category, Genre, Title, GenreTitle
+from titles.models import Category, Genre, Title, GenreTitle
 
 
 class Command(BaseCommand):
