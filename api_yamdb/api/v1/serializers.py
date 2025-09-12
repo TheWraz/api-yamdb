@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.validators import MaxLengthValidator
 
 from api_yamdb.constants import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
 from .validators import me_forbidden_validator
