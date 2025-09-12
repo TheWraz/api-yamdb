@@ -120,9 +120,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [IsModeratorOrAuthorOrReadOnly]
 
     def get_review(self):
-        """Возвращает отзыв по ID из URL."""
+        """Возвращает отзыв по ID из URL с проверкой title_id."""
+        title_id = self.kwargs.get('title_id')
         review_id = self.kwargs.get('review_id')
-        return get_object_or_404(Review, id=review_id)
+        return get_object_or_404(Review, id=review_id, title_id=title_id)
 
     def get_queryset(self):
         """Возвращает queryset комментариев для конкретного отзыва."""

@@ -4,7 +4,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import MaxLengthValidator
 
 from api_yamdb.constants import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
-from api.validators import me_forbidden_validator
+from .validators import me_forbidden_validator
 from titles.models import Category, Genre, Title
 from reviews.models import Review, Comment
 
@@ -30,7 +30,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(read_only=True, default=None)
 
     class Meta:
         model = Title
@@ -51,7 +51,8 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     genre = serializers.SlugRelatedField(
         many=True,
         slug_field='slug',
-        queryset=Genre.objects.all()
+        queryset=Genre.objects.all(),
+        required=True
     )
     category = serializers.SlugRelatedField(
         slug_field='slug',
@@ -68,6 +69,14 @@ class TitleWriteSerializer(serializers.ModelSerializer):
             'genre',
             'category',
         )
+
+    def validate_genre(self, value):
+        """Валидация: список жанров не может быть пустым."""
+        if not value:
+            raise serializers.ValidationError(
+                'Поле "genre" не может быть пустым.'
+            )
+        return value
 
     def to_representation(self, instance):
         return TitleReadSerializer(instance, context=self.context).data
@@ -111,7 +120,6 @@ class SignupSerializer(serializers.Serializer):
     email = serializers.EmailField(
         required=True,
         max_length=MAX_LENGTH_EMAIL,
-        validators=[MaxLengthValidator(MAX_LENGTH_EMAIL)]
     )
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
@@ -124,14 +132,6 @@ class SignupSerializer(serializers.Serializer):
 
         email = data.get('email')
         username = data.get('username')
-
-        if len(email) > MAX_LENGTH_EMAIL:
-            raise serializers.ValidationError({
-                'email': [
-                    f'Email не может быть длиннее {MAX_LENGTH_EMAIL} символов.'
-                ]
-            })
-
         user_by_email = User.objects.filter(email=email).first()
         user_by_username = User.objects.filter(username=username).first()
 
@@ -158,7 +158,8 @@ class TokenObtainSerializer(serializers.Serializer):
 
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
-        required=True
+        required=True,
+        validators=[UnicodeUsernameValidator(), me_forbidden_validator]
     )
     confirmation_code = serializers.CharField(
         required=True
