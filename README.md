@@ -107,3 +107,11 @@ python manage.py import_from_csv
 ```
 python manage.py runserver
 ```
+
+## 👨‍💻 Автор
+
+Никита Дмитриев — [Telegram](https://t.me/TheWraz) | [GitHub](https://github.com/TheWraz)
+
+---
+
+*Проект выполнен в рамках обучения в Яндекс Практикуме*
